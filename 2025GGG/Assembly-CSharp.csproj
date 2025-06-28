@@ -66,6 +66,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Pizza\Enemy.cs" />
     <Compile Include="Assets\Scripts\Pizza\RoundManager.cs" />
+    <Compile Include="Assets\Scripts\老虎机功能\DrawCardsManager.cs" />
     <Compile Include="Assets\Scripts\Pizza\FSM\BaseState.cs" />
     <Compile Include="Assets\Scripts\Pizza\EnemyRoundState.cs" />
     <Compile Include="Assets\Scripts\Pizza\SelectRoundState.cs" />
