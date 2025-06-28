@@ -15,6 +15,7 @@ public class EnemyRoundState : BaseState
     public override void OnEnter()
     {
         Debug.Log("进入敌人回合状态");
+        RoundManager.Instance.round_Parameter.currentEState = Estate.enemyRound;
     }
 
     //状态中持续执行

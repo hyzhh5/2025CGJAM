@@ -43,6 +43,8 @@ public class DrawCardsManager : MonoBehaviour
 
     public static DrawCardsManager Instance { get; private set; }
 
+    private int curNumDraws=0;// 当前抽卡次数
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -201,6 +203,11 @@ public class DrawCardsManager : MonoBehaviour
     [ContextMenu("抽卡")]
     public void TestDraw()
     {
+        if (RoundManager.Instance.round_Parameter.currentEState != Estate.playerRound)
+        {
+            Debug.Log("当前不是player回合，无法抽卡");
+            return;
+        }
         if (isSpinning)
         {
             Debug.Log("正在抽卡中，请稍候...");
@@ -208,10 +215,19 @@ public class DrawCardsManager : MonoBehaviour
         }
 
         var (cardType, multiplier) = DrawCards();
+        curNumDraws += 1;
+        Debug.Log("第"+(curNumDraws)+"次抽卡");
+        // 显示抽到的卡片和效果倍率
         Debug.Log($"结算卡片类型: {cardType}, 效果倍率: {multiplier}");
         Debug.Log($"抽到的卡片: {curCards[0]}, {curCards[1]}, {curCards[2]}");
+        if (curNumDraws >= RoundManager.Instance.maxNumDraws)
+        {
+            Debug.Log("抽卡次数已达上限");
+            RoundManager.Instance.SwitchToEnemyRound();
+            curNumDraws = 0; // 重置抽卡次数
+            return;
+        }
     }
-
     #region 概率相关函数
     [ContextMenu("返回概率")]
     // 更新并返回各卡片类型的抽中概率
@@ -285,16 +301,36 @@ public class DrawCardsManager : MonoBehaviour
 
         return 0f;
     }
+    [ContextMenu("Use Attack Card")]
+    public void UseAttackCard()
+    {
+        Debug.Log("使用攻击卡片");
+        
+    }
+    [ContextMenu("Use Reply Card")]
+    public void UseReplyCard()
+    {
+        Debug.Log("使用回复卡片");
 
+    }
     //修改卡池中特定类型卡片的数量（Magic卡片效果）
-    [ContextMenu("修改概率,请先选择修改的卡片类型和数量")]
+    [ContextMenu("Use Magic Card")]
     public void UseMagicCard()
     {
-        ModifyCardCount(magicCard, ExtraNum);
-        UpdateProbability();
+       Debug.Log("使用魔法卡片");
     }
-
-    public void ModifyCardCount(CardType cardType, int count)
+       
+    [ContextMenu("Use AttackUp Card")]
+    public void UseAttackUpCard()
+    {
+        Debug.Log("使用攻击增强卡片");
+    }
+    [ContextMenu("Use RoundEnd Card")]
+    public void UseRoundEndCard()
+    {
+        Debug.Log("使用回合结束卡片");
+    }
+    public void ModifyCardCount(CardType cardType, int count = 1)
     {
         // 移除所有该类型的卡片
         //cardPool.RemoveAll(card => card == cardType);
