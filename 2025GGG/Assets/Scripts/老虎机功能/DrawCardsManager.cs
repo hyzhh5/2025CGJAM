@@ -159,7 +159,6 @@ public class DrawCardsManager : MonoBehaviour
 
         // 获取目标卡片在cardDataArray中的索引
         int targetCardIndex = GetCardDataIndex(curCards[targetIndex]);
-
         while (elapsedTime < spinDuration)
         {
             // 更新显示

@@ -15,7 +15,6 @@ public enum Estate
 public class FSM_Parameter 
 {
     public Estate currentEState;
-   
 }
 
 
