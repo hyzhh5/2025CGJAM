@@ -16,7 +16,7 @@ public class EnemyRoundState : BaseState
     {
         Debug.Log("进入敌人回合状态");
         RoundManager.Instance.round_Parameter.currentEState = Estate.enemyRound;
-         // 触发敌人回合开始事件
+        // 触发敌人回合开始事件
         RoundManager.Instance.TriggerEnemyRoundStart();
     }
 
@@ -28,6 +28,6 @@ public class EnemyRoundState : BaseState
     //退出状态时执行
     public override void OnExit()
     {
-        Debug.Log("退出敌人回合状态");      
+        Debug.Log("退出敌人回合状态");        
     }
 }

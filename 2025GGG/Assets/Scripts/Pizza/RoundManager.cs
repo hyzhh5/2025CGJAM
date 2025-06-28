@@ -16,7 +16,6 @@ public class RoundManager : MonoBehaviour
     public int maxNumDraws = 3;//最大抽卡次数
     // 声明事件
     public static event System.Action OnEnemyRoundStart;
-    public static event System.Action OnEnemyRoundEnd;
 
 
     RoundManager()
@@ -62,11 +61,11 @@ public class RoundManager : MonoBehaviour
     {
         fsm.SwitchState(Estate.selectRound);
     }
-    #region 事件订阅
+
+
     public void TriggerEnemyRoundStart()
     {
         OnEnemyRoundStart?.Invoke();
     }
-    #endregion
 }
 

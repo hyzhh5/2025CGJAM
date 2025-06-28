@@ -13,9 +13,9 @@ public class Enemy : MonoBehaviour
     [SerializeField] private float bulletSpeed = 8f;
     [SerializeField] private Transform firePoint; // 发射点
 
+    private float nextAttackTime = 0f;
     private Transform playerTransform;
 
-    private Color defaultColor;
 
     private void OnEnable()
     {
@@ -33,32 +33,38 @@ public class Enemy : MonoBehaviour
     {
         // 获取玩家引用
         playerTransform = Player.Instance.transform;
-
-        defaultColor = GetComponent<SpriteRenderer>().color;
     }
 
     private void StartAttacking()
     {
-        StartCoroutine(Attack());
-    }
-
-    private IEnumerator Attack()
-    {
-        yield return new WaitForSeconds(5f);
         if (playerTransform != null)
         {
-            FireBullet();
+            StartCoroutine(Attack());
         }
-        yield return new WaitForSeconds(5f);
-        RoundManager.Instance.SwitchToPlayerRound(); // 攻击后切换到玩家回合
     }
+    private IEnumerator Attack()
+    {
+        yield return new WaitForSeconds(5);
+        FireBullet();
+        yield return new WaitForSeconds(5);
+        RoundManager.Instance.SwitchToPlayerRound();
+    }
+
     private void FireBullet()
     {
+        if (playerTransform == null) return;
+
         Vector3 spawnPosition = firePoint != null ? firePoint.position : transform.position;
         GameObject bullet = Instantiate(bulletPrefab, spawnPosition, Quaternion.identity);
         Bullet bulletScript = bullet.GetComponent<Bullet>();
+        // 如果bulletPrefab上没有Bullet组件，则添加
+        if (bulletScript == null)
+        {
+            bulletScript = bullet.AddComponent<Bullet>();
+        }
         bulletScript.Initialize(playerTransform, bulletSpeed, attackPower, false); // false表示是敌人的子弹
     }
+
 
     public void TakeDamage(int damage)
     {
@@ -79,12 +85,13 @@ public class Enemy : MonoBehaviour
         Debug.Log("Enemy took damage: " + damage + ", Remaining health: " + health);
     }
 
+
     private void ResetColor()
     {
         SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
         {
-            spriteRenderer.color = defaultColor; // 恢复为默认颜色
+            spriteRenderer.color = Color.white; // 恢复为默认颜色
         }
     }
 }

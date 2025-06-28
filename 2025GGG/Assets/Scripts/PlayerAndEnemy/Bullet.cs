@@ -9,8 +9,9 @@ public class Bullet : MonoBehaviour
     private int damage;
     private bool isPlayerBullet;
 
-    [SerializeField] private LayerMask playerLayer;  // 在Inspector中设置
-    [SerializeField] private LayerMask enemyLayer;   // 在Inspector中设置
+    // Layer常量 - 使用具体的层级数值
+    private const int PLAYER_LAYER = 6;  // Player层
+    private const int ENEMY_LAYER = 7;   // Enemy层
 
     public void Initialize(Transform target, float speed, int damage, bool isPlayerBullet)
     {
@@ -19,12 +20,9 @@ public class Bullet : MonoBehaviour
         this.damage = damage;
         this.isPlayerBullet = isPlayerBullet;
 
-        // 设置子弹的层
-        gameObject.layer = isPlayerBullet ? 
-            (int)Mathf.Log(playerLayer.value, 2) : 
-            (int)Mathf.Log(enemyLayer.value, 2);
+        // 设置子弹的层级
+        gameObject.layer = isPlayerBullet ? PLAYER_LAYER : ENEMY_LAYER;
     }
-
     private void Update()
     {
         if (target == null)
@@ -54,12 +52,9 @@ public class Bullet : MonoBehaviour
         HandleHit(other.gameObject);
     }
 
-     private void HandleHit(GameObject hitObject)
+    private void HandleHit(GameObject hitObject)
     {
-        int objectLayer = 1 << hitObject.layer;
-        Debug.Log($"isPlayerBullet: {isPlayerBullet}, hitObject layer: {hitObject.layer}, mask: {objectLayer}");
-
-        if (isPlayerBullet && (enemyLayer.value & objectLayer) != 0)
+        if (isPlayerBullet && hitObject.layer == ENEMY_LAYER)
         {
             Enemy enemy = hitObject.GetComponent<Enemy>();
             if (enemy != null)
@@ -69,7 +64,7 @@ public class Bullet : MonoBehaviour
             }
             Destroy(gameObject);
         }
-        else if (!isPlayerBullet && (playerLayer.value & objectLayer) != 0)
+        else if (!isPlayerBullet && hitObject.layer == PLAYER_LAYER)
         {
             Player player = hitObject.GetComponent<Player>();
             if (player != null)

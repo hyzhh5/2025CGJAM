@@ -16,8 +16,6 @@ public class Player : MonoBehaviour
 
     public static Player Instance { get; private set; }
 
-    private Color defaultColor;
-
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -28,7 +26,6 @@ public class Player : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
-        defaultColor = GetComponent<SpriteRenderer>().color;
     }
 
     #region 玩家行为
@@ -39,7 +36,6 @@ public class Player : MonoBehaviour
         if (nearestEnemy != null)
         {
             FireBullet(nearestEnemy.transform);
-            Debug.Log("Fired bullet at nearest enemy: " + nearestEnemy.name);
         }
         else
         {
@@ -73,10 +69,17 @@ public class Player : MonoBehaviour
     {
         Vector3 spawnPosition = firePoint != null ? firePoint.position : transform.position;
         GameObject bullet = Instantiate(BulletPrefab, spawnPosition, Quaternion.identity);
-        Debug.Log("Bullet spawned at: " + spawnPosition);
         Bullet bulletScript = bullet.GetComponent<Bullet>();
         bulletScript.Initialize(target, bulletSpeed, attackPower, true); // true表示是玩家的子弹
     }
+
+    // 在Scene视图中绘制检测范围（用于调试）
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, detectionRadius);
+    }
+
     public void AddCoin(int amount)
     {
         coin += amount;
@@ -88,9 +91,10 @@ public class Player : MonoBehaviour
         attackPower += amount;
         Debug.Log("Player's attack power increased by: " + amount + ", Total attack power: " + attackPower);
     }
+
     public void TakeDamage(int damage)
     {
-         SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
+        SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
         {
             // 播放受伤动画
@@ -100,25 +104,21 @@ public class Player : MonoBehaviour
         coin -= damage;
         if (coin <= 0)
         {
-            Debug.Log("Game Over!");
-            //UI播放失败结算画面
-            //Destroy(gameObject);
+            Debug.Log("Game Over! Player defeated!");
+            //调用关卡管理器的方法
+            Destroy(gameObject);
         }
-        Debug.Log("Player took damage: " + damage + ", Remaining coins: " + coin);
+        Debug.Log("Play took damage: " + damage + ", Remaining health: " + coin);
     }
-     private void ResetColor()
+
+
+    private void ResetColor()
     {
         SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
         {
-           spriteRenderer.color = defaultColor; // 恢复为默认颜色
+            spriteRenderer.color = Color.white; // 恢复为默认颜色
         }
     }
     #endregion
-    // 在Scene视图中绘制检测范围（用于调试）
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, detectionRadius);
-    }
 }
