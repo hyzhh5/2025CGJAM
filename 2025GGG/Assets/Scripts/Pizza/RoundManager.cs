@@ -13,7 +13,7 @@ public class RoundManager : MonoBehaviour
 
     public static RoundManager Instance{ get; private set; }
 
-    public int maxNumDraws { get; private set; } = 3;//最大抽卡次数
+    public int maxNumDraws = 3;//最大抽卡次数
 
 
     RoundManager()
