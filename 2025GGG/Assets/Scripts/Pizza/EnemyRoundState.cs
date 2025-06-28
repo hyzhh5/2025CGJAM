@@ -5,20 +5,16 @@ using UnityEngine;
 public class EnemyRoundState : BaseState
 {
     public FSM fsm;
-    Round_Parameter round_Parameter;
 
     public EnemyRoundState(FSM fsm)
     {
         this.fsm = fsm;
-        round_Parameter = fsm.parameter as Round_Parameter;
-
-
     }
-    
+
     //进入状态时执行
     public override void OnEnter()
     {
-
+        Debug.Log("进入敌人回合状态");
     }
 
     //状态中持续执行
@@ -29,7 +25,6 @@ public class EnemyRoundState : BaseState
     //退出状态时执行
     public override void OnExit()
     {
-        
-        
+        Debug.Log("退出敌人回合状态");        
     }
 }
