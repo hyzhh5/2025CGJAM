@@ -18,6 +18,7 @@ public class PlayerRoundState : BaseState
     {
         Debug.Log("进入玩家回合状态");
         RoundManager.Instance.round_Parameter.currentEState = Estate.playerRound;
+        
     }
 
     //状态中持续执行
