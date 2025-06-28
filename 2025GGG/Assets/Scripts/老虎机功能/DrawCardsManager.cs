@@ -32,24 +32,27 @@ public class DrawCardsManager : MonoBehaviour
     public CardData[] cardDataArray = new CardData[5]; // 存储5种卡牌的数据
 
     [Header("UI槽位")]
-    public Image[] uiSlot1 = new Image[3]; // 第一行UI槽位
-    public Image[] uiSlot2 = new Image[3]; // 第二行UI槽位
-    public Image[] uiSlot3 = new Image[3]; // 第三行UI槽位
+    public Image[] uiSlot1 = new Image[3]; // 第一列UI槽位
+    public Image[] uiSlot2 = new Image[3]; // 第二列UI槽位
+    public Image[] uiSlot3 = new Image[3]; // 第三列UI槽位
 
     private CardType[] curCards = new CardType[3];
     private int effectMultiplier = 1;
     private List<CardType> cardPool;
 
     private bool isSpinning = false; // 是否正在转动
-    private float moveInterval = 0.3f; // 移动间隔
-    private float spinDuration = 3f; // 总的旋转持续时间
-    private float delayBetweenSlots = 1f; // 槽位之间的延迟
+    private float moveInterval = 0.2f; // 移动间隔
+    private float spinDuration = 2f; // 总的旋转持续时间
+    private float delayBetweenSlots = 0.5f; // 槽位之间的延迟
 
     public static DrawCardsManager Instance { get; private set; }
 
     private int curNumDraws = 0;// 当前抽卡次数
     [Header("魔法卡Type")]
     public List<MagicCard> magicCards = new List<MagicCard>();
+
+    public CardType 修改类型;
+    public int 修改数量 = 1;
 
     private void Awake()
     {
@@ -297,6 +300,14 @@ public class DrawCardsManager : MonoBehaviour
 
         return 0f;
     }
+
+    [ContextMenu("修改概率")]
+    public void ModifyCardProbability()
+    {
+        ModifyCardCount(修改类型, 修改数量);
+        Debug.Log($"修改 {修改类型} : {修改数量}");
+    }
+
     public void ModifyCardCount(CardType cardType, int count = 1)
     {
         for (int i = 0; i < count; i++)
