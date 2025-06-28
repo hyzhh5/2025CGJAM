@@ -4,35 +4,49 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    public int money;//玩家生命值和金币
-    public int atk;//玩家攻击力
-    public bool isHuihe;//是否为玩家回合
+    [Header("玩家属性")]
+    public int coin = 100; // Player's health
+    public int attackPower = 10; // Player's attack power
 
+    public static Player Instance { get; private set; }
+    // Start is called before the first frame update
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+    }
 
     void Start()
     {
-        money = 100;
-        atk = 10;
+
     }
 
-    //添加金额的方法
-    public void AddMoney(int addMoney)
+    // Update is called once per frame
+    void Update()
     {
-        //调用老虎机或者海克斯的addmoney方法
 
     }
-
-    public void ReduceMoney()
+    #region 玩家行为
+    public void Attack()
     {
-        //调用老虎机或者海克斯的reduceMoney方法
+        Debug.Log("Player attacks with power: " + attackPower);
+        
     }
-
-    public void Atk()
+    public void AddCoin(int amount)//治疗
     {
-        // TODO: Attack 调用敌人的takeDamage方法
-
-
+        coin += amount;
+        Debug.Log("Player's coin increased by: " + amount + ", Total coins: " + coin);
     }
-
-
+    public void AttackUp(int amount)//攻击力提升
+    {
+        attackPower += amount;
+        Debug.Log("Player's attack power increased by: " + amount + ", Total attack power: " + attackPower);
+    }
+    #endregion
 }

@@ -8,10 +8,10 @@ public class DrawCardsManager : MonoBehaviour
 {
     public enum CardType
     {
-        attack,//æ”»å‡»åŠ›
-        reply,//é’±
-        magic,//ç‰¹æ®Šå¡
-        AttackUp, //æ”»å‡»åŠ›æå‡  
+        attack,
+        reply,
+        magic,
+        AttackUp,
         roundEnd
     }
 
@@ -21,27 +21,35 @@ public class DrawCardsManager : MonoBehaviour
         public Sprite sprite;
         public CardType cardType;
     }
+    [System.Serializable]
+    public class MagicCard
+    {
+        public CardType cardType;
+        public int Effect=1;
+    }
 
-    [Header("å¡ç‰‡æ•°æ®")]
-    public CardData[] cardDataArray = new CardData[5]; // å­˜å‚¨5ç§å¡ç‰‡çš„æ•°æ®
+    [Header("¿¨ÅÆÊı¾İÊı×é")]
+    public CardData[] cardDataArray = new CardData[5]; // ´æ´¢5ÖÖ¿¨ÅÆµÄÊı¾İ
 
-    [Header("UIè®¾ç½®")]
-    public Image[] uiSlot1 = new Image[3]; // ç¬¬ä¸€ä¸ªUIæ•°ç»„
-    public Image[] uiSlot2 = new Image[3]; // ç¬¬äºŒä¸ªUIæ•°ç»„
-    public Image[] uiSlot3 = new Image[3]; // ç¬¬ä¸‰ä¸ªUIæ•°ç»„
+    [Header("UI²ÛÎ»")]
+    public Image[] uiSlot1 = new Image[3]; // µÚÒ»ĞĞUI²ÛÎ»
+    public Image[] uiSlot2 = new Image[3]; // µÚ¶şĞĞUI²ÛÎ»
+    public Image[] uiSlot3 = new Image[3]; // µÚÈıĞĞUI²ÛÎ»
 
     private CardType[] curCards = new CardType[3];
-    private float effectMultiplier = 1f;
+    private int effectMultiplier = 1;
     private List<CardType> cardPool;
 
-    private bool isSpinning = false; // æ˜¯å¦æ­£åœ¨è½¬åŠ¨
-    private float moveInterval = 0.3f; // ç§»åŠ¨é—´éš”
-    private float spinDuration = 3f; // æ¯ä¸ªå¡ç‰‡è½¬åŠ¨æ—¶é—´
-    private float delayBetweenSlots = 1f; // å¡ç‰‡ç»„ä¹‹é—´çš„å»¶è¿Ÿ
-    [SerializeField] private CardType magicCard = CardType.attack;
-    [SerializeField] private int ExtraNum;
+    private bool isSpinning = false; // ÊÇ·ñÕıÔÚ×ª¶¯
+    private float moveInterval = 0.3f; // ÒÆ¶¯¼ä¸ô
+    private float spinDuration = 3f; // ×ÜµÄĞı×ª³ÖĞøÊ±¼ä
+    private float delayBetweenSlots = 1f; // ²ÛÎ»Ö®¼äµÄÑÓ³Ù
 
     public static DrawCardsManager Instance { get; private set; }
+
+    private int curNumDraws = 0;// µ±Ç°³é¿¨´ÎÊı
+    [Header("Ä§·¨¿¨Type")]
+    public List<MagicCard> magicCards = new List<MagicCard>();
 
     private void Awake()
     {
@@ -66,7 +74,7 @@ public class DrawCardsManager : MonoBehaviour
         }
     }
 
-    // åˆå§‹åŒ–UIæ˜¾ç¤º
+    // ³õÊ¼»¯UI²ÛÎ»
     private void InitializeUI()
     {
         for (int i = 0; i < 3; i++)
@@ -80,21 +88,21 @@ public class DrawCardsManager : MonoBehaviour
         }
     }
 
-    // æŠ½å¥–æ–¹æ³•
-    public (CardType, float) DrawCards()
+    // ³é¿¨Ö÷º¯Êı
+    public (CardType, int) DrawCards()
     {
-        if (isSpinning) return (CardType.attack, 0f); // å¦‚æœæ­£åœ¨è½¬åŠ¨ï¼Œè¿”å›é»˜è®¤å€¼
+        if (isSpinning) return (CardType.attack, 0); // Èç¹ûÕıÔÚ×ª¶¯Ôò·µ»ØÄ¬ÈÏÖµ
 
-        effectMultiplier = 1f;
+        effectMultiplier = 1;
 
-        // éšæœºæŠ½å–3å¼ å¡
+        // Ëæ»ú³éÈ¡3ÕÅ¿¨
         for (int i = 0; i < 3; i++)
         {
             int randomIndex = Random.Range(0, cardPool.Count);
             curCards[i] = cardPool[randomIndex];
         }
 
-        // ç»Ÿè®¡æ¯ç§å¡ç‰‡çš„æ•°é‡
+        // Í³¼ÆÃ¿ÖÖ¿¨Æ¬µÄÊıÁ¿
         var cardCounts = new Dictionary<CardType, int>();
         foreach (var card in curCards)
         {
@@ -103,40 +111,40 @@ public class DrawCardsManager : MonoBehaviour
             cardCounts[card]++;
         }
 
-        // æ‰¾å‡ºå‡ºç°æ¬¡æ•°æœ€å¤šçš„å¡ç‰‡ç±»å‹
+        // ÕÒ³ö³öÏÖ×î¶àµÄ¿¨Æ¬ÀàĞÍ
         var maxCount = cardCounts.Max(x => x.Value);
         var mostFrequentCard = cardCounts.FirstOrDefault(x => x.Value == maxCount).Key;
 
-        // è®¾ç½®æ•ˆæœå€ç‡
+        // ¼ÆËãĞ§¹û±¶ÂÊ
         CardType resultCard;
         if (maxCount == 3)
         {
-            effectMultiplier = 7f;
+            effectMultiplier = 7;
             resultCard = mostFrequentCard;
         }
         else if (maxCount == 2)
         {
-            effectMultiplier = 3f;
+            effectMultiplier = 3;
             resultCard = mostFrequentCard;
         }
         else
         {
-            effectMultiplier = 1f;
+            effectMultiplier = 1;
             resultCard = curCards[0];
         }
 
-        // å¼€å§‹è½¬åŠ¨åŠ¨ç”»
+        // ¿ªÊ¼×ª¶¯¶¯»­
         StartCoroutine(SpinSlots());
 
         return (resultCard, effectMultiplier);
     }
 
-    // è½¬åŠ¨è€è™æœº
+    // ×ª¶¯¶¯»­
     private IEnumerator SpinSlots()
     {
         isSpinning = true;
 
-        // å¯åŠ¨ä¸‰ä¸ªæ§½ä½çš„è½¬åŠ¨
+        // ÒÀ´ÎÆô¶¯Ã¿¸ö²ÛÎ»µÄ×ª¶¯
         StartCoroutine(SpinSingleSlot(uiSlot1, 0));
         yield return new WaitForSeconds(delayBetweenSlots);
 
@@ -145,26 +153,24 @@ public class DrawCardsManager : MonoBehaviour
 
         StartCoroutine(SpinSingleSlot(uiSlot3, 2));
 
-        // ç­‰å¾…æ‰€æœ‰è½¬åŠ¨å®Œæˆ
+        // µÈ´ıËùÓĞ²ÛÎ»Í£Ö¹×ª¶¯
         yield return new WaitForSeconds(spinDuration + delayBetweenSlots);
 
         isSpinning = false;
     }
 
-    // å•ä¸ªæ§½ä½çš„è½¬åŠ¨
+    // µ¥¸ö²ÛÎ»µÄ×ª¶¯
     private IEnumerator SpinSingleSlot(Image[] slot, int targetIndex)
     {
         float elapsedTime = 0f;
         int currentOffset = 0;
 
-        // è·å–ç›®æ ‡å¡ç‰‡åœ¨cardDataArrayä¸­çš„ç´¢å¼•
         int targetCardIndex = GetCardDataIndex(curCards[targetIndex]);
         while (elapsedTime < spinDuration)
         {
-            // æ›´æ–°æ˜¾ç¤º
             for (int i = 0; i < 3; i++)
             {
-                int cardIndex = (i - currentOffset + 500) % 5; // åŠ 500ç¡®ä¿æ­£æ•°
+                int cardIndex = (i - currentOffset + 500) % 5; // ¼Ó500ÊÇÎªÁË±ÜÃâ¸ºÊı
                 slot[i].sprite = cardDataArray[cardIndex].sprite;
             }
 
@@ -173,7 +179,7 @@ public class DrawCardsManager : MonoBehaviour
             yield return new WaitForSeconds(moveInterval);
         }
 
-        // ç¡®ä¿æœ€ç»ˆåœåœ¨æ­£ç¡®çš„ä½ç½®ï¼ˆä¸­é—´ä½ç½®æ˜¾ç¤ºç›®æ ‡å¡ç‰‡ï¼‰
+        // ÉèÖÃ×îÖÕÎ»ÖÃ
         int finalOffset = (targetCardIndex - 1 + 5) % 5;
         for (int i = 0; i < 3; i++)
         {
@@ -182,7 +188,7 @@ public class DrawCardsManager : MonoBehaviour
         }
     }
 
-    // è·å–å¡ç‰‡ç±»å‹åœ¨æ•°ç»„ä¸­çš„ç´¢å¼•
+    // »ñÈ¡¿¨ÅÆÀàĞÍÔÚÊı¾İÊı×éÖĞµÄË÷Òı
     private int GetCardDataIndex(CardType cardType)
     {
         for (int i = 0; i < cardDataArray.Length; i++)
@@ -198,54 +204,63 @@ public class DrawCardsManager : MonoBehaviour
         return curCards;
     }
 
-    [ContextMenu("æŠ½å¡")]
+    [ContextMenu("³é¿¨")]
     public void TestDraw()
     {
+        if (RoundManager.Instance.round_Parameter.currentEState != Estate.playerRound)
+        {
+            Debug.Log("ÏÖÔÚ²»ÊÇplayer»ØºÏ£¬ÎŞ·¨³é¿¨");
+            return;
+        }
         if (isSpinning)
         {
-            Debug.Log("æ­£åœ¨æŠ½å¡ä¸­ï¼Œè¯·ç¨å€™...");
+            Debug.Log("ÕıÔÚ³é¿¨ÖĞ£¬ÇëµÈ´ı...");
             return;
         }
 
         var (cardType, multiplier) = DrawCards();
-        Debug.Log($"ç»“ç®—å¡ç‰‡ç±»å‹: {cardType}, æ•ˆæœå€ç‡: {multiplier}");
-        Debug.Log($"æŠ½åˆ°çš„å¡ç‰‡: {curCards[0]}, {curCards[1]}, {curCards[2]}");
+        curNumDraws += 1;
+        Debug.Log("µÚ" + (curNumDraws) + "´Î³é¿¨");
+        Debug.Log($"³éµ½µÄ¿¨ÅÆ: {cardType}, Ğ§¹û±¶ÂÊ: {multiplier}");
+        Debug.Log($"³éµ½µÄ¿¨: {curCards[0]}, {curCards[1]}, {curCards[2]}");
+        UseCardEffect(cardType, (int)multiplier);
+
+        if (curNumDraws >= RoundManager.Instance.maxNumDraws)
+        {
+            Debug.Log("ÒÑ´ïµ½×î´ó³é¿¨´ÎÊı");
+            RoundManager.Instance.SwitchToEnemyRound();
+            curNumDraws = 0; // ÖØÖÃ³é¿¨´ÎÊı
+            return;
+        }
     }
 
-    #region æ¦‚ç‡ç›¸å…³å‡½æ•°
-    [ContextMenu("è¿”å›æ¦‚ç‡")]
-    // æ›´æ–°å¹¶è¿”å›å„å¡ç‰‡ç±»å‹çš„æŠ½ä¸­æ¦‚ç‡
+    #region ¿¨ÅÆ¸ÅÂÊÏà¹Ø
+
+    [ContextMenu("¸üĞÂ¸ÅÂÊ")]
     public float[] UpdateProbability()
     {
-        // åˆ›å»ºæ¦‚ç‡æ•°ç»„ï¼Œå¤§å°ä¸ºå¡ç‰‡ç±»å‹çš„æ•°é‡
         float[] probabilities = new float[System.Enum.GetValues(typeof(CardType)).Length];
 
-        // å¦‚æœå¡æ± ä¸ºç©ºï¼Œè¿”å›å…¨0æ•°ç»„
         if (cardPool == null || cardPool.Count == 0)
         {
-            Debug.LogWarning("å¡æ± ä¸ºç©ºï¼Œæ— æ³•è®¡ç®—æ¦‚ç‡");
+            Debug.LogWarning("¿¨³ØÎª¿Õ£¬ÎŞ·¨¼ÆËã¸ÅÂÊ");
             return probabilities;
         }
 
-        // ç»Ÿè®¡æ¯ç§å¡ç‰‡ç±»å‹çš„æ•°é‡
         Dictionary<CardType, int> cardCounts = new Dictionary<CardType, int>();
 
-        // åˆå§‹åŒ–è®¡æ•°å™¨
         foreach (CardType type in System.Enum.GetValues(typeof(CardType)))
         {
             cardCounts[type] = 0;
         }
 
-        // ç»Ÿè®¡å¡æ± ä¸­æ¯ç§ç±»å‹çš„æ•°é‡
         foreach (CardType card in cardPool)
         {
             cardCounts[card]++;
         }
 
-        // è®¡ç®—æ€»å¡ç‰‡æ•°
         int totalCards = cardPool.Count;
 
-        // è®¡ç®—æ¯ç§ç±»å‹çš„æ¦‚ç‡
         int index = 0;
         foreach (CardType type in System.Enum.GetValues(typeof(CardType)))
         {
@@ -253,26 +268,23 @@ public class DrawCardsManager : MonoBehaviour
             index++;
         }
 
-        // è°ƒè¯•è¾“å‡º
         LogProbabilities(probabilities);
 
         return probabilities;
     }
 
-    //æµ‹è¯•ï¼šè¾“å‡ºæ¦‚ç‡ä¿¡æ¯
     private void LogProbabilities(float[] probabilities)
     {
-        Debug.Log("=== å¡ç‰‡æŠ½ä¸­æ¦‚ç‡ ===");
+        Debug.Log("=== ¿¨Æ¬³éÖĞ¸ÅÂÊ ===");
         int index = 0;
         foreach (CardType type in System.Enum.GetValues(typeof(CardType)))
         {
-            Debug.Log($"{type}: {probabilities[index]:P2}"); // P2è¡¨ç¤ºç™¾åˆ†æ¯”æ ¼å¼ï¼Œä¿ç•™2ä½å°æ•°
+            Debug.Log($"{type}: {probabilities[index]:P2}");
             index++;
         }
-        Debug.Log($"å¡æ± æ€»æ•°: {cardPool.Count}");
+        Debug.Log($"¿¨³Ø×ÜÊı: {cardPool.Count}");
     }
 
-    //è·å–ç‰¹å®šå¡ç‰‡ç±»å‹çš„æ¦‚ç‡
     public float GetCardTypeProbability(CardType cardType)
     {
         float[] probabilities = UpdateProbability();
@@ -285,27 +297,92 @@ public class DrawCardsManager : MonoBehaviour
 
         return 0f;
     }
-
-    //ä¿®æ”¹å¡æ± ä¸­ç‰¹å®šç±»å‹å¡ç‰‡çš„æ•°é‡ï¼ˆMagicå¡ç‰‡æ•ˆæœï¼‰
-    [ContextMenu("ä¿®æ”¹æ¦‚ç‡,è¯·å…ˆé€‰æ‹©ä¿®æ”¹çš„å¡ç‰‡ç±»å‹å’Œæ•°é‡")]
-    public void UseMagicCard()
+    public void ModifyCardCount(CardType cardType, int count = 1)
     {
-        ModifyCardCount(magicCard, ExtraNum);
-        UpdateProbability();
-    }
-
-    public void ModifyCardCount(CardType cardType, int count)
-    {
-        // ç§»é™¤æ‰€æœ‰è¯¥ç±»å‹çš„å¡ç‰‡
-        //cardPool.RemoveAll(card => card == cardType);
-
-        // æ·»åŠ æŒ‡å®šæ•°é‡çš„å¡ç‰‡
         for (int i = 0; i < count; i++)
         {
             cardPool.Add(cardType);
         }
 
-        Debug.Log($"ä¿®æ”¹å {cardType} çš„æ•°é‡ä¸º: {count}");
+        Debug.Log($"ĞŞ¸Äºó {cardType} µÄÊıÁ¿Îª: {count}");
     }
     #endregion
+    public void UseCardEffect(CardType cardType,int multiplier = 1)
+    {
+        switch (cardType)
+        {
+            case CardType.attack:
+                UseAttackCard(multiplier);
+                break;
+            case CardType.reply:
+                UseReplyCard(multiplier);
+                break;
+            case CardType.magic:
+                UseMagicCard(multiplier);
+                break;
+            case CardType.AttackUp:
+                UseAttackUpCard(multiplier);
+                break;
+            case CardType.roundEnd:
+                UseRoundEndCard(multiplier);
+                break;
+            default:
+                Debug.LogWarning("Î´Öª¿¨ÅÆÀàĞÍ: " + cardType);
+                break;
+        }
+    }
+
+    public void UseAttackCard(int multiplier = 1)
+    {
+        Debug.Log("Ê¹ÓÃ¹¥»÷¿¨");
+        Player.Instance.Attack();
+    }
+
+    public void UseReplyCard(int multiplier = 1)
+    {
+        Debug.Log("Ê¹ÓÃ»ØÑª¿¨");
+        Player.Instance.AddCoin(10 * multiplier);
+    }
+
+    public void UseMagicCard(int multiplier = 1)
+    {
+        Debug.Log("Ê¹ÓÃÄ§·¨¿¨");
+        int cardCount = 1;
+        switch (multiplier)
+        {
+            case 1:
+                cardCount = 1;
+                break;
+            case 3:
+                cardCount = 2;
+                break;
+            default:
+                cardCount = 3;
+                break;
+        }
+        for (int i = 0; i < cardCount; i++)
+        {
+            int randomIndex = Random.Range(0, 5);
+            int effect= Random.Range(0, 2) == 0 ? 1 : -1;
+            CardType randomCard = (CardType)randomIndex;
+            MagicCard magicCard = new MagicCard();
+            magicCard.cardType = randomCard;
+            magicCard.Effect = effect;
+            magicCards.Add(magicCard);
+        }
+    }
+
+    public void UseAttackUpCard(int multiplier = 1)
+    {
+        Debug.Log("Ê¹ÓÃ¹¥»÷ÔöÇ¿¿¨");
+        Player.Instance.AttackUp(5 * multiplier);
+    }
+
+    public void UseRoundEndCard(int multiplier = 1)
+    {
+        Debug.Log("Ê¹ÓÃ»ØºÏ½áÊø¿¨");
+        RoundManager.Instance.SwitchToEnemyRound();
+        curNumDraws = 0; // ÖØÖÃ³é¿¨´ÎÊı
+    }
+
 }
