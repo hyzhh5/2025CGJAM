@@ -48,6 +48,8 @@ public class DrawCardsManager : MonoBehaviour
     public static DrawCardsManager Instance { get; private set; }
 
     private int curNumDraws = 0;// 当前抽卡次数
+
+    private bool isEnd=false;
     [Header("魔法卡Type")]
     public List<MagicCard> magicCards = new List<MagicCard>();
 
@@ -92,57 +94,24 @@ public class DrawCardsManager : MonoBehaviour
     }
 
     // 抽卡主函数
-    public (CardType, int) DrawCards()
+    public void DrawCards()
+{
+    if (isSpinning) return; // 如果正在转动则返回
+
+    effectMultiplier = 1;
+
+    // 随机抽取3张卡
+    for (int i = 0; i < 3; i++)
     {
-        if (isSpinning) return (CardType.attack, 0); // 如果正在转动则返回默认值
-
-        effectMultiplier = 1;
-
-        // 随机抽取3张卡
-        for (int i = 0; i < 3; i++)
-        {
-            int randomIndex = Random.Range(0, cardPool.Count);
-            curCards[i] = cardPool[randomIndex];
-        }
-
-        // 统计每种卡片的数量
-        var cardCounts = new Dictionary<CardType, int>();
-        foreach (var card in curCards)
-        {
-            if (!cardCounts.ContainsKey(card))
-                cardCounts[card] = 0;
-            cardCounts[card]++;
-        }
-
-        // 找出出现最多的卡片类型
-        var maxCount = cardCounts.Max(x => x.Value);
-        var mostFrequentCard = cardCounts.FirstOrDefault(x => x.Value == maxCount).Key;
-
-        // 计算效果倍率
-        CardType resultCard;
-        if (maxCount == 3)
-        {
-            effectMultiplier = 7;
-            resultCard = mostFrequentCard;
-        }
-        else if (maxCount == 2)
-        {
-            effectMultiplier = 3;
-            resultCard = mostFrequentCard;
-        }
-        else
-        {
-            effectMultiplier = 1;
-            resultCard = curCards[0];
-        }
-
-        // 开始转动动画
-        StartCoroutine(SpinSlots());
-
-        return (resultCard, effectMultiplier);
+        int randomIndex = Random.Range(0, cardPool.Count);
+        curCards[i] = cardPool[randomIndex];
     }
 
-    // 转动动画
+    // 开始转动动画
+    StartCoroutine(SpinSlots());
+}
+
+    // 修改SpinSlots方法
     private IEnumerator SpinSlots()
     {
         isSpinning = true;
@@ -160,9 +129,11 @@ public class DrawCardsManager : MonoBehaviour
         yield return new WaitForSeconds(spinDuration + delayBetweenSlots);
 
         isSpinning = false;
-    }
 
-    // 单个槽位的转动
+        // 动画结束后处理结果
+        ProcessDrawResult();
+    }
+      // 单个槽位的转动
     private IEnumerator SpinSingleSlot(Image[] slot, int targetIndex)
     {
         float elapsedTime = 0f;
@@ -207,10 +178,62 @@ public class DrawCardsManager : MonoBehaviour
         return curCards;
     }
 
+    // 新增处理结果的方法
+    private void ProcessDrawResult()
+    {
+        // 统计每种卡片的数量
+        var cardCounts = new Dictionary<CardType, int>();
+        foreach (var card in curCards)
+        {
+            if (!cardCounts.ContainsKey(card))
+                cardCounts[card] = 0;
+            cardCounts[card]++;
+        }
+
+        // 找出出现最多的卡片类型
+        var maxCount = cardCounts.Max(x => x.Value);
+        var mostFrequentCard = cardCounts.FirstOrDefault(x => x.Value == maxCount).Key;
+
+        // 计算效果倍率
+        CardType resultCard;
+        if (maxCount == 3)
+        {
+            effectMultiplier = 7;
+            resultCard = mostFrequentCard;
+        }
+        else if (maxCount == 2)
+        {
+            effectMultiplier = 3;
+            resultCard = mostFrequentCard;
+        }
+        else
+        {
+            effectMultiplier = 1;
+            resultCard = curCards[0];
+        }
+
+        curNumDraws += 1;
+        Debug.Log("第" + (curNumDraws) + "次抽卡");
+        Debug.Log($"抽到的卡牌: {resultCard}, 效果倍率: {effectMultiplier}");
+        Debug.Log($"抽到的卡: {curCards[0]}, {curCards[1]}, {curCards[2]}");
+
+        if (curNumDraws >= RoundManager.Instance.maxNumDraws)
+        {
+            Debug.Log("已达到最大抽卡次数");
+            isEnd = true;
+            UseCardEffect(resultCard, effectMultiplier);
+            return;
+        }
+        UseCardEffect(resultCard, effectMultiplier);
+    }
+
+
+    // 修改TestDraw方法
     [ContextMenu("抽卡")]
+
     public void TestDraw()
     {
-        if (RoundManager.Instance.round_Parameter.currentEState != Estate.playerRound)
+        if (RoundManager.Instance.round_Parameter.currentEState != Estate.playerRound || curNumDraws >= RoundManager.Instance.maxNumDraws)
         {
             Debug.Log("现在不是player回合，无法抽卡");
             return;
@@ -221,20 +244,7 @@ public class DrawCardsManager : MonoBehaviour
             return;
         }
 
-        var (cardType, multiplier) = DrawCards();
-        curNumDraws += 1;
-        Debug.Log("第" + (curNumDraws) + "次抽卡");
-        Debug.Log($"抽到的卡牌: {cardType}, 效果倍率: {multiplier}");
-        Debug.Log($"抽到的卡: {curCards[0]}, {curCards[1]}, {curCards[2]}");
-        UseCardEffect(cardType, (int)multiplier);
-
-        if (curNumDraws >= RoundManager.Instance.maxNumDraws)
-        {
-            Debug.Log("已达到最大抽卡次数");
-            RoundManager.Instance.SwitchToEnemyRound();
-            curNumDraws = 0; // 重置抽卡次数
-            return;
-        }
+        DrawCards();
     }
 
     #region 卡牌概率相关
@@ -324,18 +334,46 @@ public class DrawCardsManager : MonoBehaviour
         {
             case CardType.attack:
                 UseAttackCard(multiplier);
+                if (isEnd == true)
+                {
+                    isEnd = false;
+                    curNumDraws = 0; // 重置抽卡次数
+                    Debug.Log("回合结束，切换到敌人回合");
+                    RoundManager.Instance.SwitchToEnemyRound();
+                }
                 break;
             case CardType.reply:
                 UseReplyCard(multiplier);
+                 if (isEnd == true)
+                {
+                    isEnd = false;
+                    curNumDraws = 0; // 重置抽卡次数
+                    Debug.Log("回合结束，切换到敌人回合");
+                    RoundManager.Instance.SwitchToEnemyRound();
+                }
                 break;
             case CardType.magic:
-                UseMagicCard(multiplier);
+                UseMagicCard(multiplier);//选择完毕后再进入敌人回合
                 break;
             case CardType.AttackUp:
                 UseAttackUpCard(multiplier);
+                 if (isEnd == true)
+                {
+                    isEnd = false;
+                    curNumDraws = 0; // 重置抽卡次数
+                    Debug.Log("回合结束，切换到敌人回合");
+                    RoundManager.Instance.SwitchToEnemyRound();
+                }
                 break;
             case CardType.roundEnd:
                 UseRoundEndCard(multiplier);
+                 if (isEnd == true)
+                {
+                    isEnd = false;
+                    curNumDraws = 0; // 重置抽卡次数
+                    Debug.Log("回合结束，切换到敌人回合");
+                    RoundManager.Instance.SwitchToEnemyRound();
+                }
                 break;
             default:
                 Debug.LogWarning("未知卡牌类型: " + cardType);

@@ -16,6 +16,8 @@ public class Player : MonoBehaviour
 
     public static Player Instance { get; private set; }
 
+    private Color defaultColor;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -26,6 +28,7 @@ public class Player : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        defaultColor = GetComponent<SpriteRenderer>().color;
     }
 
     #region 玩家行为
@@ -36,6 +39,7 @@ public class Player : MonoBehaviour
         if (nearestEnemy != null)
         {
             FireBullet(nearestEnemy.transform);
+            Debug.Log("Fired bullet at nearest enemy: " + nearestEnemy.name);
         }
         else
         {
@@ -47,7 +51,7 @@ public class Player : MonoBehaviour
     {
         // 创建一个检测范围的碰撞数组
         Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, detectionRadius, LayerMask.GetMask("Enemy"));
-        
+
         GameObject nearest = null;
         float minDistance = Mathf.Infinity;
         Vector3 currentPosition = transform.position;
@@ -69,18 +73,10 @@ public class Player : MonoBehaviour
     {
         Vector3 spawnPosition = firePoint != null ? firePoint.position : transform.position;
         GameObject bullet = Instantiate(BulletPrefab, spawnPosition, Quaternion.identity);
+        Debug.Log("Bullet spawned at: " + spawnPosition);
         Bullet bulletScript = bullet.GetComponent<Bullet>();
-        bulletScript.Initialize(target, bulletSpeed, attackPower);
-        Debug.Log("Fire Bullet at target: " + target.name);
+        bulletScript.Initialize(target, bulletSpeed, attackPower, true); // true表示是玩家的子弹
     }
-
-    // 在Scene视图中绘制检测范围（用于调试）
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, detectionRadius);
-    }
-
     public void AddCoin(int amount)
     {
         coin += amount;
@@ -92,5 +88,37 @@ public class Player : MonoBehaviour
         attackPower += amount;
         Debug.Log("Player's attack power increased by: " + amount + ", Total attack power: " + attackPower);
     }
+    public void TakeDamage(int damage)
+    {
+         SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer != null)
+        {
+            // 播放受伤动画
+            spriteRenderer.color = Color.red; // 简单的受伤效果
+            Invoke("ResetColor", 0.1f); // 恢复颜色
+        }
+        coin -= damage;
+        if (coin <= 0)
+        {
+            Debug.Log("Game Over!");
+            //UI播放失败结算画面
+            //Destroy(gameObject);
+        }
+        Debug.Log("Player took damage: " + damage + ", Remaining coins: " + coin);
+    }
+     private void ResetColor()
+    {
+        SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer != null)
+        {
+           spriteRenderer.color = defaultColor; // 恢复为默认颜色
+        }
+    }
     #endregion
+    // 在Scene视图中绘制检测范围（用于调试）
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, detectionRadius);
+    }
 }

@@ -11,9 +11,12 @@ public class RoundManager : MonoBehaviour
     FSM fsm;
     public Round_Parameter round_Parameter = new Round_Parameter();//only
 
-    public static RoundManager Instance{ get; private set; }
+    public static RoundManager Instance { get; private set; }
 
     public int maxNumDraws = 3;//最大抽卡次数
+    // 声明事件
+    public static event System.Action OnEnemyRoundStart;
+    public static event System.Action OnEnemyRoundEnd;
 
 
     RoundManager()
@@ -25,7 +28,7 @@ public class RoundManager : MonoBehaviour
     }
     void Awake()
     {
-         if (Instance != null && Instance != this)
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
@@ -59,5 +62,11 @@ public class RoundManager : MonoBehaviour
     {
         fsm.SwitchState(Estate.selectRound);
     }
+    #region 事件订阅
+    public void TriggerEnemyRoundStart()
+    {
+        OnEnemyRoundStart?.Invoke();
+    }
+    #endregion
 }
 

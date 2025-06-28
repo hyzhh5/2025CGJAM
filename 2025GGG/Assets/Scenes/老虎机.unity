@@ -549,6 +549,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 100
+  attackPower: 5
+  bulletPrefab: {fileID: 2916310020514900880, guid: d8a883a18f1e24541884ebcb06d46f12, type: 3}
+  bulletSpeed: 8
+  firePoint: {fileID: 576923086}
 --- !u!61 &576923084
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -636,7 +640,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.97735846, g: 0.73578495, b: 0.9317925, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -785,7 +789,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.45208475, g: 0.4566037, b: 0.15076533, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -1909,7 +1913,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea5afed5e5fb62543bd5c91d53080e86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxNumDraws: 10
+  maxNumDraws: 3
 --- !u!4 &1874998684
 Transform:
   m_ObjectHideFlags: 0
