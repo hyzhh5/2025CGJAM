@@ -12,6 +12,15 @@ public class BeginPanel : BasePanelZ
 
     protected override void Init()
     {
+        // 播放背景音乐
+        AudioManagerZ.Instance.PlayBGM("世界上最小的哈基米");
+
+        // 从PlayerPrefs加载并应用音量设置
+        float musicVolume = PlayerPrefs.GetFloat("MusicVolume", 0.5f);
+        float soundVolume = PlayerPrefs.GetFloat("SoundVolume", 0.5f);
+        AudioManagerZ.Instance.SetBGMVolume(musicVolume);
+        AudioManagerZ.Instance.SetSoundVolume(soundVolume);
+        
         startBtn.onClick.AddListener(() =>
         {
             //进入游戏

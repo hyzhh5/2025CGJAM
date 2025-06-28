@@ -67,7 +67,7 @@ public class DrawCardsManager : MonoBehaviour
         InitializeCardPool();
         InitializeUI();
     }
-
+    // 初始化卡池
     private void InitializeCardPool()
     {
         cardPool = new List<CardType>();
