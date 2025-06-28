@@ -94,4 +94,20 @@ public class Enemy : MonoBehaviour
             spriteRenderer.color = Color.white; // 恢复为默认颜色
         }
     }
+
+    public void MoveTo(Vector3 targetPos, float moveSpeed = 3f)
+    {
+        StartCoroutine(MoveToTarget(targetPos, moveSpeed));
+    }
+
+    // 协程：平滑移动到目标点
+    private IEnumerator MoveToTarget(Vector3 targetPos, float moveSpeed)
+    {
+        while (Vector3.Distance(transform.position, targetPos) > 0.05f)
+        {
+            transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
+            yield return null;
+        }
+        transform.position = targetPos; // 精确到目标点
+    }
 }

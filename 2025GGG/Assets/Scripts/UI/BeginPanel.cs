@@ -17,6 +17,7 @@ public class BeginPanel : BasePanelZ
             //进入游戏
             UIManagerZ.Instance.HidePanel<BeginPanel>();
             SceneManager.LoadScene("GameScene");
+            LevelManager.Instance.NextEnemy(false);
             //UIManagerZ.Instance.ShowPanel<GamePanel>();
         });
 
