@@ -307,7 +307,7 @@ public class DrawCardsManager : MonoBehaviour
         Debug.Log($"修改后 {cardType} 的数量为: {count}");
     }
     #endregion
-    public void UseCardEffect(CardType cardType,int multiplier = 1)
+    public void UseCardEffect(CardType cardType, int multiplier = 1)
     {
         switch (cardType)
         {
@@ -330,6 +330,7 @@ public class DrawCardsManager : MonoBehaviour
                 Debug.LogWarning("未知卡牌类型: " + cardType);
                 break;
         }
+        GamePanel.Instance.UpdateUI(); // 通知UI更新
     }
 
     public void UseAttackCard(int multiplier = 1)

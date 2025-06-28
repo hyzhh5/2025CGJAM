@@ -15,7 +15,7 @@ public abstract class BasePanelZ:MonoBehaviour
     //当隐藏完毕后的行为委托
     private UnityAction hideCallback = null;
    
-    protected void Awake()
+    protected virtual void Awake()
     {
         //一开始获取面板上挂载的组件
         canvasGroup = GetComponent<CanvasGroup>();
