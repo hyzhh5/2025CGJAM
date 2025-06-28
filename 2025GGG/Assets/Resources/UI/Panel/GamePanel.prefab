@@ -2103,7 +2103,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 615bdb240fe64f743b64a37f2eac7963, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isShow: 1
+  isShow: 0
   atk: {fileID: 3691383451052850516}
   money: {fileID: 1956928421259955538}
   atkGailv: {fileID: 3934805703832458867}

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class BeginPanel : BasePanelZ
@@ -15,7 +16,8 @@ public class BeginPanel : BasePanelZ
         {
             //进入游戏
             UIManagerZ.Instance.HidePanel<BeginPanel>();
-            //UIManagerZ.Instance.ShowPanel<Gamepanel>;
+            SceneManager.LoadScene("GameScene");
+            //UIManagerZ.Instance.ShowPanel<GamePanel>();
         });
 
         exitBtn.onClick.AddListener(() =>
@@ -26,7 +28,7 @@ public class BeginPanel : BasePanelZ
         settingBtn.onClick.AddListener(() =>
         {
             UIManagerZ.Instance.HidePanel<BeginPanel>();
-            //UIManagerZ.Instance.ShowPanel<SettingPanel>();
+            UIManagerZ.Instance.ShowPanel<SettingPanel>();
         });
     }
 

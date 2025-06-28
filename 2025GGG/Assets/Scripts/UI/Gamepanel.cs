@@ -29,6 +29,10 @@ public class GamePanel : BasePanelZ
         Instance = this;
         DontDestroyOnLoad(gameObject);
     }
+    protected override void Update()
+    {
+
+    }
 
     protected override void Init()
     {
