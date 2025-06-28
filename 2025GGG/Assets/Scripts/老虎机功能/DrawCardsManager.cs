@@ -21,29 +21,35 @@ public class DrawCardsManager : MonoBehaviour
         public Sprite sprite;
         public CardType cardType;
     }
+    [System.Serializable]
+    public class MagicCard
+    {
+        public CardType cardType;
+        public int Effect=1;
+    }
 
-    [Header("卡片数据")]
-    public CardData[] cardDataArray = new CardData[5]; // 存储5种卡片的数据
+    [Header("卡牌数据数组")]
+    public CardData[] cardDataArray = new CardData[5]; // 存储5种卡牌的数据
 
-    [Header("UI设置")]
-    public Image[] uiSlot1 = new Image[3]; // 第一个UI数组
-    public Image[] uiSlot2 = new Image[3]; // 第二个UI数组
-    public Image[] uiSlot3 = new Image[3]; // 第三个UI数组
+    [Header("UI槽位")]
+    public Image[] uiSlot1 = new Image[3]; // 第一行UI槽位
+    public Image[] uiSlot2 = new Image[3]; // 第二行UI槽位
+    public Image[] uiSlot3 = new Image[3]; // 第三行UI槽位
 
     private CardType[] curCards = new CardType[3];
-    private float effectMultiplier = 1f;
+    private int effectMultiplier = 1;
     private List<CardType> cardPool;
 
     private bool isSpinning = false; // 是否正在转动
     private float moveInterval = 0.3f; // 移动间隔
-    private float spinDuration = 3f; // 每个卡片转动时间
-    private float delayBetweenSlots = 1f; // 卡片组之间的延迟
-    [SerializeField] private CardType magicCard = CardType.attack;
-    [SerializeField] private int ExtraNum;
+    private float spinDuration = 3f; // 总的旋转持续时间
+    private float delayBetweenSlots = 1f; // 槽位之间的延迟
 
     public static DrawCardsManager Instance { get; private set; }
 
-    private int curNumDraws=0;// 当前抽卡次数
+    private int curNumDraws = 0;// 当前抽卡次数
+    [Header("魔法卡Type")]
+    public List<MagicCard> magicCards = new List<MagicCard>();
 
     private void Awake()
     {
@@ -68,7 +74,7 @@ public class DrawCardsManager : MonoBehaviour
         }
     }
 
-    // 初始化UI显示
+    // 初始化UI槽位
     private void InitializeUI()
     {
         for (int i = 0; i < 3; i++)
@@ -82,12 +88,12 @@ public class DrawCardsManager : MonoBehaviour
         }
     }
 
-    // 抽奖方法
-    public (CardType, float) DrawCards()
+    // 抽卡主函数
+    public (CardType, int) DrawCards()
     {
-        if (isSpinning) return (CardType.attack, 0f); // 如果正在转动，返回默认值
+        if (isSpinning) return (CardType.attack, 0); // 如果正在转动则返回默认值
 
-        effectMultiplier = 1f;
+        effectMultiplier = 1;
 
         // 随机抽取3张卡
         for (int i = 0; i < 3; i++)
@@ -105,25 +111,25 @@ public class DrawCardsManager : MonoBehaviour
             cardCounts[card]++;
         }
 
-        // 找出出现次数最多的卡片类型
+        // 找出出现最多的卡片类型
         var maxCount = cardCounts.Max(x => x.Value);
         var mostFrequentCard = cardCounts.FirstOrDefault(x => x.Value == maxCount).Key;
 
-        // 设置效果倍率
+        // 计算效果倍率
         CardType resultCard;
         if (maxCount == 3)
         {
-            effectMultiplier = 7f;
+            effectMultiplier = 7;
             resultCard = mostFrequentCard;
         }
         else if (maxCount == 2)
         {
-            effectMultiplier = 3f;
+            effectMultiplier = 3;
             resultCard = mostFrequentCard;
         }
         else
         {
-            effectMultiplier = 1f;
+            effectMultiplier = 1;
             resultCard = curCards[0];
         }
 
@@ -133,12 +139,12 @@ public class DrawCardsManager : MonoBehaviour
         return (resultCard, effectMultiplier);
     }
 
-    // 转动老虎机
+    // 转动动画
     private IEnumerator SpinSlots()
     {
         isSpinning = true;
 
-        // 启动三个槽位的转动
+        // 依次启动每个槽位的转动
         StartCoroutine(SpinSingleSlot(uiSlot1, 0));
         yield return new WaitForSeconds(delayBetweenSlots);
 
@@ -147,7 +153,7 @@ public class DrawCardsManager : MonoBehaviour
 
         StartCoroutine(SpinSingleSlot(uiSlot3, 2));
 
-        // 等待所有转动完成
+        // 等待所有槽位停止转动
         yield return new WaitForSeconds(spinDuration + delayBetweenSlots);
 
         isSpinning = false;
@@ -159,14 +165,12 @@ public class DrawCardsManager : MonoBehaviour
         float elapsedTime = 0f;
         int currentOffset = 0;
 
-        // 获取目标卡片在cardDataArray中的索引
         int targetCardIndex = GetCardDataIndex(curCards[targetIndex]);
         while (elapsedTime < spinDuration)
         {
-            // 更新显示
             for (int i = 0; i < 3; i++)
             {
-                int cardIndex = (i - currentOffset + 500) % 5; // 加500确保正数
+                int cardIndex = (i - currentOffset + 500) % 5; // 加500是为了避免负数
                 slot[i].sprite = cardDataArray[cardIndex].sprite;
             }
 
@@ -175,7 +179,7 @@ public class DrawCardsManager : MonoBehaviour
             yield return new WaitForSeconds(moveInterval);
         }
 
-        // 确保最终停在正确的位置（中间位置显示目标卡片）
+        // 设置最终位置
         int finalOffset = (targetCardIndex - 1 + 5) % 5;
         for (int i = 0; i < 3; i++)
         {
@@ -184,7 +188,7 @@ public class DrawCardsManager : MonoBehaviour
         }
     }
 
-    // 获取卡片类型在数组中的索引
+    // 获取卡牌类型在数据数组中的索引
     private int GetCardDataIndex(CardType cardType)
     {
         for (int i = 0; i < cardDataArray.Length; i++)
@@ -205,63 +209,58 @@ public class DrawCardsManager : MonoBehaviour
     {
         if (RoundManager.Instance.round_Parameter.currentEState != Estate.playerRound)
         {
-            Debug.Log("当前不是player回合，无法抽卡");
+            Debug.Log("现在不是player回合，无法抽卡");
             return;
         }
         if (isSpinning)
         {
-            Debug.Log("正在抽卡中，请稍候...");
+            Debug.Log("正在抽卡中，请等待...");
             return;
         }
 
         var (cardType, multiplier) = DrawCards();
         curNumDraws += 1;
-        Debug.Log("第"+(curNumDraws)+"次抽卡");
-        // 显示抽到的卡片和效果倍率
-        Debug.Log($"结算卡片类型: {cardType}, 效果倍率: {multiplier}");
-        Debug.Log($"抽到的卡片: {curCards[0]}, {curCards[1]}, {curCards[2]}");
+        Debug.Log("第" + (curNumDraws) + "次抽卡");
+        Debug.Log($"抽到的卡牌: {cardType}, 效果倍率: {multiplier}");
+        Debug.Log($"抽到的卡: {curCards[0]}, {curCards[1]}, {curCards[2]}");
+        UseCardEffect(cardType, (int)multiplier);
+
         if (curNumDraws >= RoundManager.Instance.maxNumDraws)
         {
-            Debug.Log("抽卡次数已达上限");
+            Debug.Log("已达到最大抽卡次数");
             RoundManager.Instance.SwitchToEnemyRound();
             curNumDraws = 0; // 重置抽卡次数
             return;
         }
     }
-    #region 概率相关函数
-    [ContextMenu("返回概率")]
-    // 更新并返回各卡片类型的抽中概率
+
+    #region 卡牌概率相关
+
+    [ContextMenu("更新概率")]
     public float[] UpdateProbability()
     {
-        // 创建概率数组，大小为卡片类型的数量
         float[] probabilities = new float[System.Enum.GetValues(typeof(CardType)).Length];
 
-        // 如果卡池为空，返回全0数组
         if (cardPool == null || cardPool.Count == 0)
         {
             Debug.LogWarning("卡池为空，无法计算概率");
             return probabilities;
         }
 
-        // 统计每种卡片类型的数量
         Dictionary<CardType, int> cardCounts = new Dictionary<CardType, int>();
 
-        // 初始化计数器
         foreach (CardType type in System.Enum.GetValues(typeof(CardType)))
         {
             cardCounts[type] = 0;
         }
 
-        // 统计卡池中每种类型的数量
         foreach (CardType card in cardPool)
         {
             cardCounts[card]++;
         }
 
-        // 计算总卡片数
         int totalCards = cardPool.Count;
 
-        // 计算每种类型的概率
         int index = 0;
         foreach (CardType type in System.Enum.GetValues(typeof(CardType)))
         {
@@ -269,26 +268,23 @@ public class DrawCardsManager : MonoBehaviour
             index++;
         }
 
-        // 调试输出
         LogProbabilities(probabilities);
 
         return probabilities;
     }
 
-    //测试：输出概率信息
     private void LogProbabilities(float[] probabilities)
     {
         Debug.Log("=== 卡片抽中概率 ===");
         int index = 0;
         foreach (CardType type in System.Enum.GetValues(typeof(CardType)))
         {
-            Debug.Log($"{type}: {probabilities[index]:P2}"); // P2表示百分比格式，保留2位小数
+            Debug.Log($"{type}: {probabilities[index]:P2}");
             index++;
         }
         Debug.Log($"卡池总数: {cardPool.Count}");
     }
 
-    //获取特定卡片类型的概率
     public float GetCardTypeProbability(CardType cardType)
     {
         float[] probabilities = UpdateProbability();
@@ -301,41 +297,8 @@ public class DrawCardsManager : MonoBehaviour
 
         return 0f;
     }
-    [ContextMenu("Use Attack Card")]
-    public void UseAttackCard()
-    {
-        Debug.Log("使用攻击卡片");
-        
-    }
-    [ContextMenu("Use Reply Card")]
-    public void UseReplyCard()
-    {
-        Debug.Log("使用回复卡片");
-
-    }
-    //修改卡池中特定类型卡片的数量（Magic卡片效果）
-    [ContextMenu("Use Magic Card")]
-    public void UseMagicCard()
-    {
-       Debug.Log("使用魔法卡片");
-    }
-       
-    [ContextMenu("Use AttackUp Card")]
-    public void UseAttackUpCard()
-    {
-        Debug.Log("使用攻击增强卡片");
-    }
-    [ContextMenu("Use RoundEnd Card")]
-    public void UseRoundEndCard()
-    {
-        Debug.Log("使用回合结束卡片");
-    }
     public void ModifyCardCount(CardType cardType, int count = 1)
     {
-        // 移除所有该类型的卡片
-        //cardPool.RemoveAll(card => card == cardType);
-
-        // 添加指定数量的卡片
         for (int i = 0; i < count; i++)
         {
             cardPool.Add(cardType);
@@ -344,4 +307,82 @@ public class DrawCardsManager : MonoBehaviour
         Debug.Log($"修改后 {cardType} 的数量为: {count}");
     }
     #endregion
+    public void UseCardEffect(CardType cardType,int multiplier = 1)
+    {
+        switch (cardType)
+        {
+            case CardType.attack:
+                UseAttackCard(multiplier);
+                break;
+            case CardType.reply:
+                UseReplyCard(multiplier);
+                break;
+            case CardType.magic:
+                UseMagicCard(multiplier);
+                break;
+            case CardType.AttackUp:
+                UseAttackUpCard(multiplier);
+                break;
+            case CardType.roundEnd:
+                UseRoundEndCard(multiplier);
+                break;
+            default:
+                Debug.LogWarning("未知卡牌类型: " + cardType);
+                break;
+        }
+    }
+
+    public void UseAttackCard(int multiplier = 1)
+    {
+        Debug.Log("使用攻击卡");
+        Player.Instance.Attack();
+    }
+
+    public void UseReplyCard(int multiplier = 1)
+    {
+        Debug.Log("使用回血卡");
+        Player.Instance.AddCoin(10 * multiplier);
+    }
+
+    public void UseMagicCard(int multiplier = 1)
+    {
+        Debug.Log("使用魔法卡");
+        int cardCount = 1;
+        switch (multiplier)
+        {
+            case 1:
+                cardCount = 1;
+                break;
+            case 3:
+                cardCount = 2;
+                break;
+            default:
+                cardCount = 3;
+                break;
+        }
+        for (int i = 0; i < cardCount; i++)
+        {
+            int randomIndex = Random.Range(0, 5);
+            int effect= Random.Range(0, 2) == 0 ? 1 : -1;
+            CardType randomCard = (CardType)randomIndex;
+            MagicCard magicCard = new MagicCard();
+            magicCard.cardType = randomCard;
+            magicCard.Effect = effect;
+            magicCards.Add(magicCard);
+        }
+    }
+
+    public void UseAttackUpCard(int multiplier = 1)
+    {
+        Debug.Log("使用攻击增强卡");
+        Player.Instance.AttackUp(5 * multiplier);
+    }
+
+    public void UseRoundEndCard(int multiplier = 1)
+    {
+        Debug.Log("使用回合结束卡");
+        RoundManager.Instance.SwitchToEnemyRound();
+        curNumDraws = 0; // 重置抽卡次数
+    }
+
 }
